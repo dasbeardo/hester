@@ -1,0 +1,77 @@
+/* styles.css */
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevent scrolling */
+    background-color: #000; /* Background color for the game */
+    font-family: Arial, sans-serif; /* Set a default font */
+}
+
+#game {
+    position: relative;
+    margin: 0 auto; /* Center the game container horizontally */
+    width: 720px; /* Match the game width */
+    height: 400px; /* Match the game height */
+}
+
+.overlay {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 720px; /* Match the game width */
+    height: 400px; /* Match the game height */
+    background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
+    color: #fff;
+    text-align: center;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay.visible {
+    display: flex; /* Show the overlay */
+}
+
+.overlay-content {
+    margin: 0 auto;
+}
+
+.overlay-content h2,
+.overlay-content h3 {
+    margin: 20px 0 10px 0;
+}
+
+.overlay-content p,
+.overlay-content label {
+    margin: 10px 0;
+}
+
+.overlay-content input {
+    padding: 5px;
+    margin-bottom: 10px;
+    width: 200px;
+    font-size: 16px;
+}
+
+.overlay-content button {
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#score-list {
+    list-style-type: none;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto; /* Add scroll if list is too long */
+    margin: 0 auto;
+    width: 50%;
+    text-align: left;
+}
+
+#score-list li {
+    margin: 5px 0;
+}

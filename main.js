@@ -23,18 +23,21 @@ const config = {
 let player;
 let defenders;
 let cursors;
+let pauseKey;
+let paused = false; // Tracks whether the game is paused
 let score = 0;
 let scoreText;
 let livesText;
 let gameOver = false;
 let moveEvent;
 let difficulty = 1;
-let moveTowardPlayerChance = 70; // Increased initial chance
+let moveTowardPlayerChance = 70; // Initial chance
 let stayStillChance = 25;
 let moveAwayChance = 5;
 let currentInterval = 500; // Initial interval
 let startingLives = 3;
 let lives = startingLives;
+let pauseText;
 
 // Grid settings
 const GRID_SIZE = 40;
@@ -62,10 +65,17 @@ function preload() {
 
 // Create game objects
 function create() {
+    // Remove any existing moveEvent to prevent duplicate events
+    if (moveEvent) {
+        moveEvent.remove(false);
+        moveEvent = null;
+    }
+
     // Initialize score and lives
     score = 0;
     lives = startingLives;
     gameOver = false;
+    paused = false;
 
     // Reset difficulty variables
     difficulty = 1;
@@ -78,7 +88,11 @@ function create() {
     drawGrid(this);
 
     // Create the player
-    player = this.physics.add.sprite(GRID_SIZE / 2, GRID_SIZE * (GRID_HEIGHT / 2) + GRID_SIZE / 2, 'player');
+    player = this.physics.add.sprite(
+        GRID_SIZE / 2,
+        GRID_SIZE * (GRID_HEIGHT / 2) + GRID_SIZE / 2,
+        'player'
+    );
     player.setCollideWorldBounds(true);
     player.body.setSize(GRID_SIZE, GRID_SIZE);
 
@@ -88,10 +102,17 @@ function create() {
 
     // Enable keyboard input
     cursors = this.input.keyboard.createCursorKeys();
+    pauseKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
 
     // Display score and lives
-    scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '20px', fill: '#fff' });
-    livesText = this.add.text(10, 30, 'Lives: ' + lives, { fontSize: '20px', fill: '#fff' });
+    scoreText = this.add.text(10, 10, 'Score: 0', {
+        fontSize: '20px',
+        fill: '#fff',
+    });
+    livesText = this.add.text(10, 30, 'Lives: ' + lives, {
+        fontSize: '20px',
+        fill: '#fff',
+    });
 
     // Set up collision detection
     this.physics.add.overlap(player, defenders, handleCollision, null, this);
@@ -105,12 +126,29 @@ function create() {
 
     // Overlay elements
     setupOverlay.call(this);
+
+    // Create paused text but make it invisible initially
+    pauseText = this.add.text(config.width / 2, config.height / 2, 'Paused', {
+        fontSize: '40px',
+        fill: '#fff',
+    });
+    pauseText.setOrigin(0.5);
+    pauseText.setVisible(false);
 }
 
 // Update loop
 function update(time) {
     if (gameOver) {
         return;
+    }
+
+    // Toggle pause state when 'P' key is just pressed
+    if (Phaser.Input.Keyboard.JustDown(pauseKey)) {
+        togglePause(this);
+    }
+
+    if (paused) {
+        return; // Skip the rest of the update when paused
     }
 
     handlePlayerInput(time);
@@ -130,7 +168,7 @@ function update(time) {
             yoyo: true,
             onComplete: () => {
                 scoreText.setScale(1);
-            }
+            },
         });
 
         resetPositions(this);
@@ -139,6 +177,45 @@ function update(time) {
             increaseDifficulty(this);
         }
     }
+}
+
+// Function to toggle pause state
+function togglePause(scene) {
+    paused = !paused; // Toggle the paused state
+
+    if (paused) {
+        // Pause physics and timers
+        scene.physics.world.pause();
+
+        // Pause defender movement event
+        if (moveEvent) {
+            moveEvent.paused = true;
+        }
+
+        // Show paused overlay
+        showPauseOverlay();
+    } else {
+        // Resume physics and timers
+        scene.physics.world.resume();
+
+        // Resume defender movement event
+        if (moveEvent) {
+            moveEvent.paused = false;
+        }
+
+        // Hide paused overlay
+        hidePauseOverlay();
+    }
+}
+
+// Show pause overlay
+function showPauseOverlay() {
+    pauseText.setVisible(true);
+}
+
+// Hide pause overlay
+function hidePauseOverlay() {
+    pauseText.setVisible(false);
 }
 
 // Draw grid lines
@@ -193,12 +270,20 @@ function handlePlayerInput(time) {
     const newX = player.x + deltaX;
     const newY = player.y + deltaY;
 
-    if (deltaX !== 0 && newX >= GRID_SIZE / 2 && newX <= GRID_SIZE * GRID_WIDTH - GRID_SIZE / 2) {
+    if (
+        deltaX !== 0 &&
+        newX >= GRID_SIZE / 2 &&
+        newX <= GRID_SIZE * GRID_WIDTH - GRID_SIZE / 2
+    ) {
         player.x = newX;
         moved = true;
     }
 
-    if (deltaY !== 0 && newY >= GRID_SIZE / 2 && newY <= GRID_SIZE * GRID_HEIGHT - GRID_SIZE / 2) {
+    if (
+        deltaY !== 0 &&
+        newY >= GRID_SIZE / 2 &&
+        newY <= GRID_SIZE * GRID_HEIGHT - GRID_SIZE / 2
+    ) {
         player.y = newY;
         moved = true;
     }
@@ -232,8 +317,12 @@ function createDefenders(scene, count) {
         let validPosition = false;
 
         while (!validPosition && attempts < maxAttempts) {
-            const x = Phaser.Math.Between(2, GRID_WIDTH - 2) * GRID_SIZE + GRID_SIZE / 2;
-            const y = Phaser.Math.Between(1, GRID_HEIGHT - 2) * GRID_SIZE + GRID_SIZE / 2;
+            const x =
+                Phaser.Math.Between(2, GRID_WIDTH - 2) * GRID_SIZE +
+                GRID_SIZE / 2;
+            const y =
+                Phaser.Math.Between(1, GRID_HEIGHT - 2) * GRID_SIZE +
+                GRID_SIZE / 2;
             const posKey = `${x},${y}`;
 
             // Check if position and adjacent cells are unoccupied
@@ -301,13 +390,19 @@ function moveTowardPlayer(defender) {
     if (player.x < defender.x && defender.x > GRID_SIZE / 2) {
         possibleMoves.push({ x: defender.x - speed, y: defender.y });
     }
-    if (player.x > defender.x && defender.x < GRID_SIZE * GRID_WIDTH - GRID_SIZE / 2) {
+    if (
+        player.x > defender.x &&
+        defender.x < GRID_SIZE * GRID_WIDTH - GRID_SIZE / 2
+    ) {
         possibleMoves.push({ x: defender.x + speed, y: defender.y });
     }
     if (player.y < defender.y && defender.y > GRID_SIZE / 2) {
         possibleMoves.push({ x: defender.x, y: defender.y - speed });
     }
-    if (player.y > defender.y && defender.y < GRID_SIZE * GRID_HEIGHT - GRID_SIZE / 2) {
+    if (
+        player.y > defender.y &&
+        defender.y < GRID_SIZE * GRID_HEIGHT - GRID_SIZE / 2
+    ) {
         possibleMoves.push({ x: defender.x, y: defender.y + speed });
     }
 
@@ -327,13 +422,19 @@ function moveAwayFromPlayer(defender) {
     const speed = GRID_SIZE;
     const possibleMoves = [];
 
-    if (player.x < defender.x && defender.x < GRID_SIZE * GRID_WIDTH - GRID_SIZE / 2) {
+    if (
+        player.x < defender.x &&
+        defender.x < GRID_SIZE * GRID_WIDTH - GRID_SIZE / 2
+    ) {
         possibleMoves.push({ x: defender.x + speed, y: defender.y });
     }
     if (player.x > defender.x && defender.x > GRID_SIZE / 2) {
         possibleMoves.push({ x: defender.x - speed, y: defender.y });
     }
-    if (player.y < defender.y && defender.y < GRID_SIZE * GRID_HEIGHT - GRID_SIZE / 2) {
+    if (
+        player.y < defender.y &&
+        defender.y < GRID_SIZE * GRID_HEIGHT - GRID_SIZE / 2
+    ) {
         possibleMoves.push({ x: defender.x, y: defender.y + speed });
     }
     if (player.y > defender.y && defender.y > GRID_SIZE / 2) {
@@ -355,7 +456,11 @@ function moveAwayFromPlayer(defender) {
 function willCollideWithDefender(movingDefender, newX, newY) {
     let collision = false;
     defenders.children.iterate(function (other) {
-        if (movingDefender !== other && Phaser.Math.Fuzzy.Equal(newX, other.x, 1) && Phaser.Math.Fuzzy.Equal(newY, other.y, 1)) {
+        if (
+            movingDefender !== other &&
+            Phaser.Math.Fuzzy.Equal(newX, other.x, 1) &&
+            Phaser.Math.Fuzzy.Equal(newY, other.y, 1)
+        ) {
             collision = true;
         }
     });
@@ -391,6 +496,16 @@ function resetPositions(scene) {
 
     // Reset defenders
     createDefenders(scene, defenders.getLength());
+
+    // Reset the moveEvent with the current interval
+    if (moveEvent) {
+        moveEvent.remove(false);
+    }
+    moveEvent = scene.time.addEvent({
+        delay: currentInterval,
+        callback: () => updateDefenders(scene),
+        loop: true,
+    });
 }
 
 // Increase game difficulty
@@ -405,7 +520,9 @@ function increaseDifficulty(scene) {
     currentInterval = Math.max(100, currentInterval - 30);
 
     // Adjust the move event timer
-    moveEvent.remove(false);
+    if (moveEvent) {
+        moveEvent.remove(false);
+    }
     moveEvent = scene.time.addEvent({
         delay: currentInterval,
         callback: () => updateDefenders(scene),
@@ -417,6 +534,13 @@ function increaseDifficulty(scene) {
 function endGame() {
     gameOver = true;
     this.physics.pause();
+
+    // Remove moveEvent to stop defenders from moving
+    if (moveEvent) {
+        moveEvent.remove(false);
+        moveEvent = null;
+    }
+
     document.getElementById('overlay').classList.add('visible');
     document.getElementById('final-score').innerText = 'Score: ' + score;
     displayHighScores();
@@ -453,5 +577,7 @@ function saveHighScore() {
 function displayHighScores() {
     const highScores = JSON.parse(localStorage.getItem('highScores')) || [];
     const scoreList = document.getElementById('score-list');
-    scoreList.innerHTML = highScores.map(entry => `<li>${entry.name}: ${entry.score}</li>`).join('');
+    scoreList.innerHTML = highScores
+        .map((entry) => `<li>${entry.name}: ${entry.score}</li>`)
+        .join('');
 }
