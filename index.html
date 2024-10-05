@@ -1,105 +1,73 @@
-<!--  Explanation
-
-	1.	HTML Document Structure:
-	•	<!DOCTYPE html>: Declares the document type and version (HTML5).
-	•	<html lang="en">: Defines the root element of the HTML document with the language set to English.
-	2.	Head Section:
-	•	<meta charset="UTF-8">: Sets the character encoding for the document to UTF-8.
-	•	<title>Right Runner</title>: Sets the title of the web page to “Right Runner”.
-	•	<style>: Contains CSS styles to style the game elements and layout.
-	3.	Body Section:
-	•	<body>: Contains the main content of the web page.
-	•	Canvas Element:
-	•	<canvas id="gameCanvas" width="360" height="200"></canvas>: A canvas element where the game will be drawn.
-	•	Game Over Screen:
-	•	<div id="game-over">: A container for the game over screen elements, initially hidden.
-	•	<h1>Game Over</h1>: Displays the “Game Over” message.
-	•	<p id="score"></p>: A paragraph element to display the player’s score.
-	•	<input type="text" id="name" placeholder="Enter your name" maxlength="10">: An input field for the player to enter their name, limited to 10 characters.
-	•	<button onclick="saveHighScore()">Save Score</button>: A button to save the player’s score.
-	•	<button onclick="startGame()">Retry</button>: A button to restart the game.
-	•	High Scores Screen:
-	•	<div id="high-scores">: A container for the high scores screen elements, initially hidden.
-	•	<h2>High Scores</h2>: Displays the “High Scores” heading.
-	•	<ul id="score-list"></ul>: An unordered list to display the high scores.
-	•	JavaScript Files:
-	•	<script src="settings.js"></script>: Includes the settings.js file.
-	•	<script src="player.js"></script>: Includes the player.js file.
-	•	<script src="defender.js"></script>: Includes the defender.js file.
-	•	<script src="utilities.js"></script>: Includes the utilities.js file.
-	•	<script src="input.js"></script>: Includes the input.js file.
-	•	<script src="difficulty.js"></script>: Includes the difficulty.js file.
-	•	<script src="game.js"></script>: Includes the game.js file. -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Right Runner</title>
+    <title>Right Runner - Phaser Version</title>
     <style>
-        /* Center the canvas and other elements on the screen */
         body {
+            margin: 0;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+        #game-container {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            background: #000;
-            color: #fff;
+            overflow: hidden;
         }
-
-        /* Style for the game canvas */
-        canvas {
-            background: #000;
+        #game {
             border: 1px solid #fff;
         }
-
-        /* Style for the game over screen */
-        #game-over {
+        /* Game over and high scores screens */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
             display: none;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
         }
-
-        /* Style for the high scores screen */
+        #overlay.visible {
+            display: flex;
+        }
+        #overlay input, #overlay button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
         #high-scores {
-            display: none;
-            flex-direction: column;
-            align-items: center;
             margin-top: 20px;
+        }
+        #high-scores ul {
+            list-style: none;
+            padding: 0;
         }
     </style>
 </head>
 <body>
-    <!-- Canvas element for the game -->
-    <canvas id="gameCanvas" width="360" height="200"></canvas>
-    
-    <!-- Game over screen -->
-    <div id="game-over">
-        <h1>Game Over</h1>
-        <p id="score"></p>
-        <!-- Input for entering the player's name -->
-        <input type="text" id="name" placeholder="Enter your name" maxlength="10">
-        <!-- Button to save the score -->
-        <button onclick="saveHighScore()">Save Score</button>
-        <!-- Button to retry the game -->
-        <button onclick="startGame()">Retry</button>
+    <div id="game-container">
+        <div id="game"></div>
+        <div id="overlay">
+            <h1 id="overlay-title">Game Over</h1>
+            <p id="final-score"></p>
+            <input type="text" id="player-name" placeholder="Enter your name" maxlength="10">
+            <button id="save-score-button">Save Score</button>
+            <button id="retry-button">Retry</button>
+            <div id="high-scores">
+                <h2>High Scores</h2>
+                <ul id="score-list"></ul>
+            </div>
+        </div>
     </div>
-
-    <!-- High scores screen -->
-    <div id="high-scores">
-        <h2>High Scores</h2>
-        <!-- List to display high scores -->
-        <ul id="score-list"></ul>
-    </div>
-
-    <!-- Include JavaScript files -->
-    <script src="settings.js"></script>
-    <script src="player.js"></script>
-    <script src="defender.js"></script>
-    <script src="utilities.js"></script>
-    <script src="input.js"></script>
-    <script src="difficulty.js"></script>
-    <script src="game.js"></script>
+    <!-- Include Phaser library -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+    <!-- Include your game script -->
+    <script src="main.js"></script>
 </body>
 </html>
