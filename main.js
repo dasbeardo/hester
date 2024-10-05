@@ -23,6 +23,7 @@ const config = {
 let player;
 let defenders;
 let cursors;
+let wasdKeys;
 let pauseKey;
 let paused = false; // Tracks whether the game is paused
 let score = 0;
@@ -103,6 +104,14 @@ function create() {
     // Enable keyboard input
     cursors = this.input.keyboard.createCursorKeys();
     pauseKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+
+    // Add WASD keys
+    wasdKeys = this.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.W,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        left: Phaser.Input.Keyboard.KeyCodes.A,
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+    });
 
     // Display score and lives
     scoreText = this.add.text(10, 10, 'Score: 0', {
@@ -254,15 +263,15 @@ function handlePlayerInput(time) {
     let deltaX = 0;
     let deltaY = 0;
 
-    if (cursors.left.isDown) {
+    if (cursors.left.isDown || wasdKeys.left.isDown) {
         deltaX = -speed;
-    } else if (cursors.right.isDown) {
+    } else if (cursors.right.isDown || wasdKeys.right.isDown) {
         deltaX = speed;
     }
 
-    if (cursors.up.isDown) {
+    if (cursors.up.isDown || wasdKeys.up.isDown) {
         deltaY = -speed;
-    } else if (cursors.down.isDown) {
+    } else if (cursors.down.isDown || wasdKeys.down.isDown) {
         deltaY = speed;
     }
 
