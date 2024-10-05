@@ -67,6 +67,13 @@ function create() {
     lives = startingLives;
     gameOver = false;
 
+    // Reset difficulty variables
+    difficulty = 1;
+    moveTowardPlayerChance = 70; // Reset to initial chance
+    stayStillChance = 25;
+    moveAwayChance = 5;
+    currentInterval = 500; // Reset to initial interval
+
     // Create grid lines (optional for visual reference)
     drawGrid(this);
 
@@ -112,6 +119,19 @@ function update(time) {
     if (player.x >= GRID_SIZE * GRID_WIDTH - GRID_SIZE / 2) {
         score += 1;
         scoreText.setText('Score: ' + score);
+
+        // Celebratory scaling effect
+        this.tweens.add({
+            targets: scoreText,
+            scaleX: 1.5,
+            scaleY: 1.5,
+            duration: 200,
+            ease: 'Power2',
+            yoyo: true,
+            onComplete: () => {
+                scoreText.setScale(1);
+            }
+        });
 
         resetPositions(this);
 
