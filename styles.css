@@ -21,7 +21,7 @@ body {
     top: 0;
     left: 0;
     width: 720px; /* Match the game width */
-    height: 400px; /* Match the game height */
+    height: 555px; /* Match the game height */
     background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
     color: #fff;
     text-align: center;
