@@ -86,7 +86,7 @@ function create() {
     currentInterval = 500; // Reset to initial interval
 
     // Create grid lines (optional for visual reference)
-    drawGrid(this);
+    // drawGrid(this);
 
     // Create the player
     player = this.physics.add.sprite(
